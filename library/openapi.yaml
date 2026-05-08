@@ -1,0 +1,648 @@
+openapi: 3.0.3
+
+info:
+  title: Library Management System
+  description: >
+    REST API for a small library system.
+    Manage authors, books, members, and borrow records.
+    Prevents borrowing an already-borrowed book and enforces a per-member active borrow limit.
+  version: 1.0.0
+  contact:
+    name: Library API Support
+    email: support@library.com
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+tags:
+  - name: Info
+    description: Application info
+  - name: Authors
+    description: Manage authors
+  - name: Books
+    description: Manage books
+  - name: Members
+    description: Manage library members
+  - name: Borrows
+    description: Borrow and return books
+
+# ── Paths ────────────────────────────────────────────────────────────────────
+
+paths:
+
+  # ── Info ──────────────────────────────────────────────────────────────────
+
+  /api/info:
+    get:
+      tags: [Info]
+      summary: Get application info
+      description: Returns app name, version, loan period and max borrow limit from config.
+      operationId: getInfo
+      responses:
+        '200':
+          description: Application info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfoResponse'
+
+  # ── Authors ───────────────────────────────────────────────────────────────
+
+  /api/authors:
+    post:
+      tags: [Authors]
+      summary: Create an author
+      operationId: createAuthor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthorRequest'
+            example:
+              name: George Orwell
+              email: orwell@books.com
+      responses:
+        '201':
+          description: Author created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+    get:
+      tags: [Authors]
+      summary: List all authors
+      operationId: getAllAuthors
+      responses:
+        '200':
+          description: List of authors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuthorResponse'
+
+  /api/authors/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+
+    get:
+      tags: [Authors]
+      summary: Get author by ID
+      operationId: getAuthorById
+      responses:
+        '200':
+          description: Author found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Authors]
+      summary: Update author
+      operationId: updateAuthor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthorRequest'
+      responses:
+        '200':
+          description: Author updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  # ── Books ─────────────────────────────────────────────────────────────────
+
+  /api/books:
+    post:
+      tags: [Books]
+      summary: Add a book
+      operationId: createBook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookRequest'
+            example:
+              title: "1984"
+              isbn: "978-0451524935"
+              authorId: 1
+      responses:
+        '201':
+          description: Book created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+    get:
+      tags: [Books]
+      summary: List all books
+      operationId: getAllBooks
+      parameters:
+        - name: available
+          in: query
+          required: false
+          description: Filter by availability. Pass true to get only borrowable books.
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of books
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookResponse'
+
+  /api/books/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+
+    get:
+      tags: [Books]
+      summary: Get book by ID
+      operationId: getBookById
+      responses:
+        '200':
+          description: Book found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Books]
+      summary: Update book details
+      operationId: updateBook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookRequest'
+      responses:
+        '200':
+          description: Book updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+    delete:
+      tags: [Books]
+      summary: Delete a book
+      operationId: deleteBook
+      description: Cannot delete a book that is currently borrowed.
+      responses:
+        '204':
+          description: Book deleted
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Members ───────────────────────────────────────────────────────────────
+
+  /api/members:
+    post:
+      tags: [Members]
+      summary: Register a member
+      operationId: registerMember
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberRequest'
+            example:
+              name: Alice Smith
+              email: alice@library.com
+              phone: "+91-9876543210"
+      responses:
+        '201':
+          description: Member registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+    get:
+      tags: [Members]
+      summary: List all members
+      operationId: getAllMembers
+      responses:
+        '200':
+          description: List of members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MemberResponse'
+
+  /api/members/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+
+    get:
+      tags: [Members]
+      summary: Get member by ID
+      operationId: getMemberById
+      responses:
+        '200':
+          description: Member found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Members]
+      summary: Update member details
+      operationId: updateMember
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberRequest'
+      responses:
+        '200':
+          description: Member updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/members/{id}/borrows:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+
+    get:
+      tags: [Members]
+      summary: Get borrow history for a member
+      operationId: getMemberBorrows
+      responses:
+        '200':
+          description: Borrow history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BorrowRecordResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Borrows ───────────────────────────────────────────────────────────────
+
+  /api/borrows:
+    post:
+      tags: [Borrows]
+      summary: Borrow a book
+      operationId: borrowBook
+      description: >
+        Validates that the book is available and the member has not exceeded
+        their active borrow limit. Sets borrowedAt to today and dueDate to
+        today + loan-period-days from config.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BorrowRequest'
+            example:
+              bookId: 1
+              memberId: 1
+      responses:
+        '201':
+          description: Book borrowed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BorrowRecordResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /api/borrows/{id}/return:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+
+    put:
+      tags: [Borrows]
+      summary: Return a book
+      operationId: returnBook
+      description: >
+        Marks the borrow record as RETURNED, sets returnedAt to today,
+        and makes the book available again. Rejects if already returned.
+      responses:
+        '200':
+          description: Book returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BorrowRecordResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+# ── Components ────────────────────────────────────────────────────────────────
+
+components:
+
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+      description: Resource ID
+
+  # ── Schemas ───────────────────────────────────────────────────────────────
+
+  schemas:
+
+    # Requests
+    AuthorRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          example: George Orwell
+        email:
+          type: string
+          format: email
+          example: orwell@books.com
+
+    BookRequest:
+      type: object
+      required: [title, isbn, authorId]
+      properties:
+        title:
+          type: string
+          example: "1984"
+        isbn:
+          type: string
+          example: "978-0451524935"
+        authorId:
+          type: integer
+          format: int64
+          example: 1
+
+    MemberRequest:
+      type: object
+      required: [name, email]
+      properties:
+        name:
+          type: string
+          example: Alice Smith
+        email:
+          type: string
+          format: email
+          example: alice@library.com
+        phone:
+          type: string
+          example: "+91-9876543210"
+
+    BorrowRequest:
+      type: object
+      required: [bookId, memberId]
+      properties:
+        bookId:
+          type: integer
+          format: int64
+          example: 1
+        memberId:
+          type: integer
+          format: int64
+          example: 1
+
+    # Responses
+    AuthorResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        email:
+          type: string
+        totalBooks:
+          type: integer
+
+    BookResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        isbn:
+          type: string
+        available:
+          type: boolean
+        authorId:
+          type: integer
+          format: int64
+        authorName:
+          type: string
+
+    MemberResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        activeBorrows:
+          type: integer
+
+    BorrowRecordResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        bookId:
+          type: integer
+          format: int64
+        bookTitle:
+          type: string
+        bookIsbn:
+          type: string
+        memberId:
+          type: integer
+          format: int64
+        memberName:
+          type: string
+        borrowedAt:
+          type: string
+          format: date
+        dueDate:
+          type: string
+          format: date
+        returnedAt:
+          type: string
+          format: date
+          nullable: true
+        status:
+          type: string
+          enum: [ACTIVE, RETURNED, OVERDUE]
+        daysOverdue:
+          type: integer
+          format: int64
+
+    InfoResponse:
+      type: object
+      properties:
+        appName:
+          type: string
+        appVersion:
+          type: string
+        loanPeriodDays:
+          type: integer
+        maxActiveBorrowsPerMember:
+          type: integer
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        validationErrors:
+          type: object
+          additionalProperties:
+            type: string
+          nullable: true
+
+  # ── Reusable Responses ────────────────────────────────────────────────────
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            status: 404
+            error: Not Found
+            message: "Book not found with id: 99"
+            timestamp: "2025-05-01T10:00:00"
+
+    Conflict:
+      description: Duplicate resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            status: 409
+            error: Conflict
+            message: "Book with ISBN '978-0451524935' already exists"
+            timestamp: "2025-05-01T10:00:00"
+
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            status: 400
+            error: Validation Failed
+            message: One or more fields are invalid
+            timestamp: "2025-05-01T10:00:00"
+            validationErrors:
+              name: Author name is required
+              email: Email must be a valid email address
+
+    UnprocessableEntity:
+      description: Business rule violation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            status: 422
+            error: Book Not Available
+            message: "Book with id 1 is already borrowed and not available"
+            timestamp: "2025-05-01T10:00:00"

@@ -1,0 +1,382 @@
+{
+  "info": {
+    "name": "Library Management API",
+    "description": "REST API for Library Management System - Book, Author, Member, and Borrow Management",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Info",
+      "item": [
+        {
+          "name": "Get App Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/info",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "info"]
+            },
+            "description": "Get application name, version, and library business rules"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authors",
+      "item": [
+        {
+          "name": "Create Author",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Stephen King\",\n  \"email\": \"stephen@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/authors",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "authors"]
+            },
+            "description": "Create a new author"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Authors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/authors",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "authors"]
+            },
+            "description": "Retrieve all authors"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Author by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/authors/{{authorId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "authors", "{{authorId}}"]
+            },
+            "description": "Get a specific author by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Author",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Stephen King (Updated)\",\n  \"email\": \"stephen.updated@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/authors/{{authorId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "authors", "{{authorId}}"]
+            },
+            "description": "Update an existing author"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Books",
+      "item": [
+        {
+          "name": "Create Book",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"The Shining\",\n  \"isbn\": \"978-0385123693\",\n  \"authorId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/books",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books"]
+            },
+            "description": "Create a new book"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Books",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/books",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books"]
+            },
+            "description": "Retrieve all books"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Available Books",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/books?available=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books"],
+              "query": [
+                {
+                  "key": "available",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Retrieve only available books"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Book by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/{{bookId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books", "{{bookId}}"]
+            },
+            "description": "Get a specific book by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Book",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"The Shining (Reissue)\",\n  \"isbn\": \"978-0385123693\",\n  \"authorId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/books/{{bookId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books", "{{bookId}}"]
+            },
+            "description": "Update an existing book"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Book",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/{{bookId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books", "{{bookId}}"]
+            },
+            "description": "Delete a book"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Members",
+      "item": [
+        {
+          "name": "Register Member",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"phone\": \"+1-555-123-4567\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/members",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "members"]
+            },
+            "description": "Register a new library member"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Members",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/members",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "members"]
+            },
+            "description": "Retrieve all members"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Member by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/members/{{memberId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "members", "{{memberId}}"]
+            },
+            "description": "Get a specific member by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Member",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe (Updated)\",\n  \"email\": \"john.updated@example.com\",\n  \"phone\": \"+1-555-999-8888\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/members/{{memberId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "members", "{{memberId}}"]
+            },
+            "description": "Update an existing member"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Member Borrow Records",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/members/{{memberId}}/borrows",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "members", "{{memberId}}", "borrows"]
+            },
+            "description": "Get all borrow records for a specific member"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Borrows",
+      "item": [
+        {
+          "name": "Borrow Book",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookId\": 1,\n  \"memberId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/borrows",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "borrows"]
+            },
+            "description": "Create a borrow record for a book"
+          },
+          "response": []
+        },
+        {
+          "name": "Return Book",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/borrows/{{borrowId}}/return",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "borrows", "{{borrowId}}", "return"]
+            },
+            "description": "Mark a borrowed book as returned"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "authorId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "bookId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "memberId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "borrowId",
+      "value": "1",
+      "type": "string"
+    }
+  ]
+}
