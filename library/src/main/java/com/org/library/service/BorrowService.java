@@ -77,10 +77,10 @@ public class BorrowService {
     public BorrowRecordResponse returnBook(Long borrowRecordId) {
         BorrowRecord record = findRecordOrThrow(borrowRecordId);
 
-        // Guard: can only return an ACTIVE borrow
-        if (record.getStatus() != BorrowStatus.ACTIVE) {
+        // Only RETURNED should be blocked
+        if (record.getStatus() == BorrowStatus.RETURNED) {
             throw new BadRequestException(
-                    "Borrow record " + borrowRecordId + " is already " + record.getStatus());
+                    "Borrow record " + borrowRecordId + " is already returned");
         }
 
         LocalDate today = LocalDate.now();
@@ -122,7 +122,7 @@ public class BorrowService {
     @Transactional
     public int markOverdueRecords() {
         List<BorrowRecord> overdue =
-                borrowRecordRepository.findOverdueRecords(LocalDate.    now());
+                borrowRecordRepository.findOverdueRecords(LocalDate.now());
 
         overdue.forEach(r -> r.setStatus(BorrowStatus.OVERDUE));
         borrowRecordRepository.saveAll(overdue);
