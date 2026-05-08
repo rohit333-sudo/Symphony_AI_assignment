@@ -11,15 +11,7 @@ import org.springframework.stereotype.Component;
 @Setter
 public class AppProperties {
 
-    /**
-     * Human-readable application name.
-     * Injected from: app.name
-     */
     private String name;
 
-    /**
-     * Current application version string.
-     * Injected from: app.version
-     */
     private String version;
 }
